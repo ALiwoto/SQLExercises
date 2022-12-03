@@ -43,6 +43,9 @@ SELECT * FROM Products
     WHERE Price BETWEEN 50 AND 60;
 
 -- `LIKE` : Search for a pattern
-
+SELECT * FROM Customers
+    WHERE City LIKE 's%';
 
 -- `IN` : 	To specify multiple possible values for a column
+SELECT * FROM Customers
+    WHERE City IN ('Paris','London');

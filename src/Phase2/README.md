@@ -76,3 +76,18 @@ Here are some examples showing different `LIKE` operators with `'%'` and `'_'` w
 
 <hr/>
 
+## SQL Wildcard Characters
+
+A wildcard character is used to substitute one or more characters in a string.
+
+Wildcard characters are used with the `LIKE` operator. The `LIKE` operator is used in a `WHERE` clause to search for a specified pattern in a column.
+
+### Wildcard Characters in SQL Server
+
+-------------------------------------------------------------------------------------------
+|  Symbol  |              Description              |               Example                 |
+|   `%`    |  Represents zero or more characters   | `bl%` finds bl, black, blue, and blob |
+|   `_`    |    Represents a single character      |   	`h_t` finds hot, hat, and hit      |
+--------------------------------------------------------------------------------------------
+
+

@@ -105,3 +105,5 @@ Here are some examples showing different LIKE operators with '%' and '_' wildcar
 |  `WHERE CustomerName LIKE 'a__%'`  | Finds any values that starts with "a" and are at least 3 characters in length |
 |  `WHERE ContactName LIKE 'a%o'`    | Finds any values that starts with "a" and ends with "o" |
 
+
+<hr/>

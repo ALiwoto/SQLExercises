@@ -88,5 +88,8 @@ Wildcard characters are used with the `LIKE` operator. The `LIKE` operator is us
 | ---------|---------------------------------------|-------------------------------------- |
 |   `%`    |  Represents zero or more characters   | `bl%` finds bl, black, blue, and blob |
 |   `_`    |    Represents a single character      |   	`h_t` finds hot, hat, and hit      |
+|  `[]`    | Represents any single character within the brackets | `h_t` finds hot, hat, and hit |
+|   `^`    | Represents any character not in the brackets |	`h[^oa]t` finds hit, but not hot and hat |
+|   `-`    | Represents any single character within the specified range |	`c[a-b]t` finds cat and cbt |
 
 

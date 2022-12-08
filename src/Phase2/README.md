@@ -84,10 +84,9 @@ Wildcard characters are used with the `LIKE` operator. The `LIKE` operator is us
 
 ### Wildcard Characters in SQL Server
 
--------------------------------------------------------------------------------------------
 |  Symbol  |              Description              |               Example                 |
+--------------------------------------------------------------------------------------------
 |   `%`    |  Represents zero or more characters   | `bl%` finds bl, black, blue, and blob |
 |   `_`    |    Represents a single character      |   	`h_t` finds hot, hat, and hit      |
---------------------------------------------------------------------------------------------
 
 

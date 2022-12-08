@@ -92,4 +92,16 @@ Wildcard characters are used with the `LIKE` operator. The `LIKE` operator is us
 |   `^`    | Represents any character not in the brackets |	`h[^oa]t` finds hit, but not hot and hat |
 |   `-`    | Represents any single character within the specified range |	`c[a-b]t` finds cat and cbt |
 
+> **Note**: All the wildcards can also be used in combinations!
+
+Here are some examples showing different LIKE operators with '%' and '_' wildcards:
+       
+|            LIKE Operator           |                   Example                             |
+| -----------------------------------|------------------------------------------------------ |
+|  `WHERE CustomerName LIKE 'a%'`    |      Finds any values that starts with "a"            |
+|  `WHERE CustomerName LIKE '%a'`    |      Finds any values that ends with "a"              |
+|  `WHERE CustomerName LIKE '%or%'`  | Finds any values that have "or" in any position       |
+|  `WHERE CustomerName LIKE '_r%'`   | Finds any values that have "r" in the second position |
+|  `WHERE CustomerName LIKE 'a__%'`  | Finds any values that starts with "a" and are at least 3 characters in length |
+|  `WHERE ContactName LIKE 'a%o'`    | Finds any values that starts with "a" and ends with "o" |
 

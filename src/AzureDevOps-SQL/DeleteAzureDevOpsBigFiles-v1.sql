@@ -1,3 +1,10 @@
+-- NOTE:
+-- This SQL Query does NOT use batch-operation.
+-- So basically your log file is going to get so big that your disk is going to
+-- run out of size, so you will encounter an error (if you run it inside of a transaction,
+-- which is on by default in SSMS).
+-- To fix this, we need to run the delete operations in batch, and then use CHECKPOINT.
+
 use Tfs_DefaultCollection;
 
 DECLARE @ItemsToDelete TABLE (

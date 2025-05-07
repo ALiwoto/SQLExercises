@@ -9,7 +9,7 @@ DECLARE @ItemsToDelete TABLE (
 
 INSERT INTO @ItemsToDelete
 SELECT
-    --TOP 6
+    TOP 6
     ChildItem,
     SUM(c.OffsetTo - c.OffsetFrom) / (1024 * 1024) AS MySize,
     a.FileId,
@@ -57,14 +57,28 @@ BEGIN
     -- Get the next batch of records
     INSERT INTO @CurrentBatch
         (ResourceId, FileId)
-    SELECT TOP (@BatchSize)
-        ResourceId, FileId
+    SELECT ResourceId, FileId
     FROM @ItemsToDelete
-    ORDER BY ResourceId
-    OFFSET @RowsProcessed ROWS;
+    ORDER BY ResourceId         
+    OFFSET @RowsProcessed ROWS
+    FETCH NEXT @BatchSize ROWS ONLY;
 
     -- Get count of records in this batch
     DECLARE @CurrentBatchSize INT = @@ROWCOUNT;
+
+    -- If @CurrentBatchSize is 0 and we haven't processed all rows,
+    -- it might indicate an issue or end of data.
+    IF @CurrentBatchSize = 0 AND @RowsProcessed < @TotalRows
+    BEGIN
+        PRINT 'Warning: No rows fetched for the current batch, but not all rows processed. Exiting loop.';
+        BREAK;
+    -- Exit the loop to prevent infinite looping if something is wrong
+    END
+    IF @CurrentBatchSize = 0
+    BEGIN
+        PRINT 'No more rows to process in @ItemsToDelete.';
+        BREAK;
+    END
 
     BEGIN TRANSACTION;
 
@@ -83,19 +97,16 @@ BEGIN
     PRINT 'Deleted ' + CAST(@@ROWCOUNT AS VARCHAR) + ' records from tbl_FileReference';
 
     -- Delete from tbl_ContainerItem using the FileIds in the current batch
-    -- DELETE FROM tbl_ContainerItem
-    -- WHERE FileId IN (SELECT FileId FROM @CurrentBatch);
-
-    -- Delete from tbl_ContainerItem using the FileIds in the current batch
-    -- ONLY IF those FileIds no longer have any references in tbl_FileReference
+    -- Incorporating the fix to avoid orphaned records:
     DELETE ci
     FROM tbl_ContainerItem ci
-    WHERE ci.FileId IN (SELECT FileId
-        FROM @CurrentBatch)
-        AND NOT EXISTS (
+        INNER JOIN (SELECT DISTINCT FileId
+        FROM @CurrentBatch) batchFileIds
+        ON ci.FileId = batchFileIds.FileId
+    WHERE NOT EXISTS (
         SELECT 1
-        FROM tbl_FileReference fr
-        WHERE fr.FileId = ci.FileId
+    FROM tbl_FileReference fr
+    WHERE fr.FileId = ci.FileId
     );
 
     PRINT 'Deleted ' + CAST(@@ROWCOUNT AS VARCHAR) + ' records from tbl_ContainerItem';
@@ -108,13 +119,13 @@ BEGIN
     -- Issue CHECKPOINT to flush transaction log
     CHECKPOINT;
 
-    PRINT 'Completed batch ' + CAST((@RowsProcessed / @BatchSize) AS VARCHAR) + 
-          '. Processed ' + CAST(@RowsProcessed AS VARCHAR) + ' of ' + 
-          CAST(@TotalRows AS VARCHAR) + ' records (' + 
-          CAST((@RowsProcessed * 100 / @TotalRows) AS VARCHAR) + '%)';
+    PRINT 'Completed batch. Processed ' + CAST(@RowsProcessed AS VARCHAR) + ' of ' +
+          CAST(@TotalRows AS VARCHAR) + ' records (' +
+          CAST(ROUND((CAST(@RowsProcessed AS FLOAT) * 100.0 / CASE WHEN @TotalRows = 0 THEN 1 ELSE @TotalRows END), 2) AS VARCHAR) + '%)';
+-- Improved percentage calculation
 
 -- Optional: Add a delay between batches to reduce server load
 -- WAITFOR DELAY '00:00:01';  -- 1 second delay
 END
 
-PRINT 'Batch delete operation completed successfully';
+PRINT 'Batch delete operation completed';

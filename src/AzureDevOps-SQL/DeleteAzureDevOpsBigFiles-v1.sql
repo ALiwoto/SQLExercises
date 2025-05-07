@@ -7,40 +7,57 @@
 
 use Tfs_DefaultCollection;
 
-DECLARE @ItemsToDelete TABLE (
-    ChildItem NVARCHAR(255),
-    MySize FLOAT,
-    FileId int,
-    ResourceId uniqueidentifier
+DECLARE @MyItemsToDelete TABLE (
+  ChildItem NVARCHAR(255),
+  MySize FLOAT,
+  FileId int,
+  ResourceId uniqueidentifier
 );
 
-INSERT INTO @ItemsToDelete
-SELECT 
-	--TOP 6
-    ChildItem, 
-    SUM(c.OffsetTo - c.OffsetFrom) / (1024 * 1024) AS MySize, 
-    a.FileId, 
-    c.ResourceId
+DECLARE @ItemsToDelete TABLE (
+  ChildItem NVARCHAR(255),
+  MySize FLOAT,
+  FileId int,
+  ResourceId uniqueidentifier
+);
+
+INSERT INTO @MyItemsToDelete
+SELECT
+  --TOP 6
+  ChildItem,
+  SUM(c.OffsetTo - c.OffsetFrom) / (1024 * 1024) AS MySize,
+  a.FileId,
+  c.ResourceId
 FROM tbl_ContainerItem a
-JOIN tbl_FileReference b ON a.FileId = b.FileId
-JOIN tbl_Content c ON b.ResourceId = c.ResourceId
-WHERE ItemType = 2 
-  AND FileType = 1 
-  AND ChildItem LIKE N'%dev%.zip%' 
-  --AND c.CreationDate > GETDATE() - 365
+  JOIN tbl_FileReference b ON a.FileId = b.FileId
+  JOIN tbl_Content c ON b.ResourceId = c.ResourceId
+WHERE ItemType = 2
+  AND FileType = 1
+  AND ChildItem LIKE N'%dev%.zip%'
+--AND c.CreationDate > GETDATE() - 365
 GROUP BY ChildItem, a.FileId, c.ResourceId
 HAVING SUM(c.OffsetTo - c.OffsetFrom) / (1024 * 1024) > 1;
 
+INSERT INTO @ItemsToDelete
+SELECT TOP 3
+  *
+FROM @MyItemsToDelete
+ORDER BY MySize DESC;
+
 --select SUM(MySize) from @ItemsToDelete;
---select * from @ItemsToDelete ORDER BY MySize DESC;
+select *
+from @ItemsToDelete
+ORDER BY MySize DESC;
 
 -- Delete from tbl_Content using the ResourceIds identified in the CTE
 DELETE FROM tbl_Content
-WHERE ResourceId IN (SELECT ResourceId FROM @ItemsToDelete)
+WHERE ResourceId IN (SELECT ResourceId
+FROM @ItemsToDelete)
 
 -- Delete from tbl_FileReference using the ResourceIds identified in the CTE
 DELETE FROM tbl_FileReference
-WHERE ResourceId IN (SELECT ResourceId FROM @ItemsToDelete)
+WHERE ResourceId IN (SELECT ResourceId
+FROM @ItemsToDelete)
 
 -- Delete from tbl_ContainerItem using the FileIds identified in the CTE
 -- BE AWARE: This will delete ALL rows in tbl_ContainerItem that have a FileId
@@ -48,5 +65,5 @@ WHERE ResourceId IN (SELECT ResourceId FROM @ItemsToDelete)
 -- with other ChildItems that did NOT meet the criteria. This follows the pattern
 -- of your example delete query for tbl_ContainerItem which filters only by FileId.
 DELETE FROM tbl_ContainerItem
-WHERE FileId IN (SELECT FileId FROM @ItemsToDelete)
-
+WHERE FileId IN (SELECT FileId
+FROM @ItemsToDelete)
